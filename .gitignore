@@ -2,6 +2,9 @@
 node_modules/
 legal-rag-backend/backend/__pycache__/
 legal-rag-backend/backend/**/__pycache__/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.env
 
 # Next.js
 .next/
@@ -124,6 +127,7 @@ MANIFEST
 
 #Docker Env
 .env.docker
+.env
 
 # Jupyter Notebook
 .ipynb_checkpoints
