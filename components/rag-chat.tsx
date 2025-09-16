@@ -82,7 +82,9 @@ export function RAGChat({ documentText }: RAGChatProps) {
 
   const checkRagStatus = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/rag/status");
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/rag/status`
+      );
       setRagStatus(response.data);
     } catch (error) {
       console.error("Failed to check RAG status:", error);
@@ -95,7 +97,7 @@ export function RAGChat({ documentText }: RAGChatProps) {
     try {
       setIsLoading(true);
       const response = await axios.post(
-        "http://localhost:8000/rag/add_document",
+        `${process.env.NEXT_PUBLIC_API_URL}/rag/add_document`,
         {
           text: documentText,
         }
@@ -137,12 +139,15 @@ export function RAGChat({ documentText }: RAGChatProps) {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:8000/rag/query", {
-        question: inputValue,
-        session_id: currentSessionId,
-        top_k: 5,
-        use_rerank: true,
-      });
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/rag/query`,
+        {
+          question: inputValue,
+          session_id: currentSessionId,
+          top_k: 5,
+          use_rerank: true,
+        }
+      );
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
