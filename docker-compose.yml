@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    networks:
+      - legal-analyzer
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      - SPACY_MODEL_PATH=/app/models/spacy_model
+      - LEGAL_BERT_PATH=/app/models/legalbert
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - HOST=0.0.0.0
+      - PORT=8000
+    volumes:
+      # Mount your model directories
+      - ./backend/models:/app/models:ro
+      - ./backend/data:/app/data
+    networks:
+      - legal-analyzer
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  legal-analyzer:
+    driver: bridge
+
+volumes:
+  models:
+  data:

@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      target: deps
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev:frontend
+    depends_on:
+      - backend
+    networks:
+      - legal-analyzer-dev
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      - SPACY_MODEL_PATH=/app/models/spacy_model
+      - LEGAL_BERT_PATH=/app/models/legalbert
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - HOST=0.0.0.0
+      - PORT=8000
+    volumes:
+      - ./backend:/app
+      - ./backend/models:/app/models:ro
+      - ./backend/data:/app/data
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - legal-analyzer-dev
+
+networks:
+  legal-analyzer-dev:
+    driver: bridge
