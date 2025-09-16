@@ -106,15 +106,10 @@ export function FileUpload({
       );
 
       if (response.data.success) {
-        // For file upload, we need to extract the text from the response
-        // This is a simplified approach - in production, you'd handle this better
-        const fileReader = new FileReader();
-        fileReader.onload = (e) => {
-          const text = e.target?.result as string;
-          onAnalysisComplete(response.data.analysis, text);
-        };
-        fileReader.readAsText(uploadedFile);
-      } else {
+        const extractedText = response.data.text; // backend must return extracted text
+        onAnalysisComplete(response.data.analysis, extractedText);
+      }
+      else {
         setError("File upload failed. Please try again.");
       }
     } catch (err: any) {
