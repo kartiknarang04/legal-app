@@ -49,32 +49,33 @@ export function FileUpload({
     try {
       onAnalysisStart();
       setError(null);
-
+  
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/analyze`,
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/analyze`,
         {
           text: text,
           summary_length: 5,
           use_groq_refinement: true,
         }
       );
-
+  
       if (response.data.success) {
         onAnalysisComplete(response.data.analysis, text);
-
+  
         // Also add document to RAG system
         try {
           await axios.post(
-            `${process.env.NEXT_PUBLIC_API_URL}/rag/add_document`,
+            `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/rag/add_document`,
             {
               text: text,
+              title: "Pasted Text Document"
             }
           );
         } catch (ragError) {
           console.warn("Failed to add document to RAG system:", ragError);
         }
       } else {
-        setError("Analysis failed. Please try again.");
+        setError(response.data.error || "Analysis failed. Please try again.");
       }
     } catch (err: any) {
       console.error("Analysis error:", err);
@@ -87,16 +88,16 @@ export function FileUpload({
 
   const handleFileUpload = async () => {
     if (!uploadedFile) return;
-
+  
     try {
       const formData = new FormData();
       formData.append("file", uploadedFile);
-
+  
       onAnalysisStart();
       setError(null);
-
+  
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/upload`,
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/upload`,
         formData,
         {
           headers: {
@@ -104,13 +105,26 @@ export function FileUpload({
           },
         }
       );
-
-      if (response.data.success) {
-        const extractedText = response.data.text; // backend must return extracted text
+  
+      if (response.data.success && response.data.text) {
+        // Use the extracted text from backend
+        const extractedText = response.data.text;
         onAnalysisComplete(response.data.analysis, extractedText);
-      }
-      else {
-        setError("File upload failed. Please try again.");
+        
+        // Also add document to RAG system
+        try {
+          await axios.post(
+            `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/rag/add_document`,
+            {
+              text: extractedText,
+              title: uploadedFile.name
+            }
+          );
+        } catch (ragError) {
+          console.warn("Failed to add document to RAG system:", ragError);
+        }
+      } else {
+        setError(response.data.error || "File upload failed. Please try again.");
       }
     } catch (err: any) {
       console.error("Upload error:", err);
